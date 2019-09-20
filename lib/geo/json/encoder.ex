@@ -2,6 +2,8 @@ defmodule Geo.JSON.Encoder do
   @moduledoc false
 
   alias Geo.{
+    Feature,
+    FeatureCollection,
     Point,
     PointZ,
     LineString,
@@ -42,6 +44,9 @@ defmodule Geo.JSON.Encoder do
         |> add_crs(srid)
         |> add_properties(properties)
 
+      %type{} = struct when type in [Feature, FeatureCollection] ->
+        do_encode(struct)
+
       _ ->
         geom
         |> do_encode()
@@ -59,6 +64,22 @@ defmodule Geo.JSON.Encoder do
   rescue
     exception in [EncodeError] ->
       {:error, exception}
+  end
+
+  defp do_encode(%Feature{geometry: geometry, properties: properties, id: id}) do
+    %{
+      "type" => "Feature",
+      "geometry" => do_encode(geometry),
+      "properties" => properties,
+      "id" => id
+    }
+  end
+
+  defp do_encode(%FeatureCollection{features: features}) do
+    %{
+      "type" => "FeatureCollection",
+      "features" => Enum.map(features, &do_encode/1)
+    }
   end
 
   defp do_encode(%Point{coordinates: {x, y}}) do

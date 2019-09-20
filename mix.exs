@@ -36,11 +36,12 @@ defmodule Geo.Mixfile do
 
   defp deps do
     [
-      {:poison, "~> 4.0", only: :test},
+      {:poison, "~> 4.0", only: [:test, :dev]},
       {:ex_doc, "~> 0.18", only: :dev},
       {:excoveralls, "~> 0.11.0", only: :test},
       {:stream_data, "~> 0.4.3", only: :test},
-      {:benchee, "~> 1.0", only: :dev}
+      {:benchee, "~> 1.0", only: :dev},
+      {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false}
     ]
   end
 

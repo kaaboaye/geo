@@ -7,3 +7,4 @@ erl_crash.dump
 /doc
 /.elixir_ls
 /.tools-versions
+.vscode

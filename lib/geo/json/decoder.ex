@@ -2,6 +2,8 @@ defmodule Geo.JSON.Decoder do
   @moduledoc false
 
   alias Geo.{
+    Feature,
+    FeatureCollection,
     Point,
     PointZ,
     LineString,
@@ -66,24 +68,21 @@ defmodule Geo.JSON.Decoder do
           "Feature",
           Map.get(geo_json, "geometry"),
           Map.get(geo_json, "properties", %{}),
-          Map.get(geo_json, "id", "")
+          Map.get(geo_json, "id")
         )
 
       Map.get(geo_json, "type") == "FeatureCollection" ->
-        geometries =
+        features =
           Enum.map(Map.get(geo_json, "features"), fn x ->
             do_decode(
               Map.get(x, "type"),
               Map.get(x, "geometry"),
               Map.get(x, "properties", %{}),
-              Map.get(x, "id", "")
+              Map.get(x, "id")
             )
           end)
 
-        %GeometryCollection{
-          geometries: geometries,
-          properties: %{}
-        }
+        %FeatureCollection{features: features}
 
       true ->
         raise DecodeError, value: geo_json
@@ -161,8 +160,12 @@ defmodule Geo.JSON.Decoder do
     %MultiPolygonZ{coordinates: coordinates, srid: get_srid(crs), properties: properties}
   end
 
-  defp do_decode("Feature", geometry, properties, _id) do
-    do_decode(Map.get(geometry, "type"), Map.get(geometry, "coordinates"), properties, nil)
+  defp do_decode("Feature", geometry, properties, id) do
+    %Feature{
+      geometry: decode!(geometry),
+      properties: properties,
+      id: id
+    }
   end
 
   defp do_decode(type, [x, y, _z], properties, crs) do
